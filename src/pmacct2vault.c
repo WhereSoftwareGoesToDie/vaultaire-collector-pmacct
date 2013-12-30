@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <anchor_stats.h>
+#include <marquise.h>
 
 /* Max time to wait between batching up frames to send to voltaire */
 #define BATCH_PERIOD	1
