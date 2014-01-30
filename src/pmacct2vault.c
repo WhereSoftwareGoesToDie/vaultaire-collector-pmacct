@@ -38,9 +38,9 @@ int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 	 *
 	 * We ignore everything other than source IP, destination IP, and bytes
 	 */
-	*source_ip = NULL; 
+	*source_ip = NULL;
 	*dest_ip = NULL;
-	return sscanf(cs, 
+	return sscanf(cs,
 		"%*s%*s%*s%*s%*s%*s%*s"
 #if _POSIX_C_SOURCE >= 200809L
 		"%ms%ms"
@@ -55,37 +55,37 @@ int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 		) == 3;
 }
 
-static inline int emit_tx_bytes(as_connection connection, 
-		char *collection_point, char *ip, uint64_t timestamp, 
+static inline int emit_tx_bytes(marquise_connection connection,
+		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
 	char * source_fields[] = { "type", "collection_point", "ip", "field" };
 	char * source_values[] = { "ip_traffic", "syd1", ip, "tx_bytes" };
-	return as_send_int(connection, source_fields, source_values, 4, 
+	return marquise_send_int(connection, source_fields, source_values, 4,
 				bytes, timestamp);
 }
-static inline int emit_rx_bytes(as_connection connection, 
-		char *collection_point, char *ip, uint64_t timestamp, 
+static inline int emit_rx_bytes(marquise_connection connection,
+		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
 	char * source_fields[] = { "type", "collection_point", "ip", "field" };
 	char * source_values[] = { "ip_traffic", "syd1", ip, "rx_bytes" };
-	return as_send_int(connection, source_fields, source_values, 4, 
+	return marquise_send_int(connection, source_fields, source_values, 4,
 				bytes, timestamp);
 }
-static inline int emit_dest_ip(as_connection connection, 
-		char *collection_point, char *ip, uint64_t timestamp, 
+static inline int emit_dest_ip(marquise_connection connection,
+		char *collection_point, char *ip, uint64_t timestamp,
 		char *dest_ip) {
 	char * source_fields[] = { "type", "collection_point", "ip", "field" };
 	char * source_values[] = { "ip_traffic", "syd1", ip, "dest_ip" };
-	return as_send_text(connection, source_fields, source_values, 4, 
+	return marquise_send_text(connection, source_fields, source_values, 4,
 				dest_ip, strlen(dest_ip), timestamp);
 }
 
-static inline int emit_src_ip(as_connection connection, 
-		char *collection_point, char *ip, uint64_t timestamp, 
+static inline int emit_src_ip(marquise_connection connection,
+		char *collection_point, char *ip, uint64_t timestamp,
 		char *src_ip) {
 	char * source_fields[] = { "type", "collection_point", "ip", "field" };
 	char * source_values[] = { "ip_traffic", "syd1", ip, "src_ip" };
-	return as_send_text(connection, source_fields, source_values, 4, 
+	return marquise_send_text(connection, source_fields, source_values, 4,
 				src_ip, strlen(src_ip), timestamp);
 }
 
@@ -98,8 +98,8 @@ int main(int argc, char **argv) {
 	uint64_t timestamp;
 	uint64_t last_timestamp;
 	char *collection_point;
-	as_consumer consumer;
-	as_connection vaultc;
+	marquise_consumer consumer;
+	marquise_connection vaultc;
 
 	if (argc < 3) {
 		fprintf(stderr,"%s <collection point> <vaultaire endpoint>\n\n"
@@ -110,14 +110,14 @@ int main(int argc, char **argv) {
 	collection_point = argv[1];
 
 	/* get a new consumer we can send frames to */
-	consumer = as_consumer_new(argv[2], BATCH_PERIOD);
+	consumer = marquise_consumer_new(argv[2], BATCH_PERIOD);
 	if (consumer == NULL) {
-		perror("as_consumer_new"); return 1;
+		perror("marquise_consumer_new"); return 1;
 	}
-	vaultc = as_connect(consumer);
+	vaultc = marquise_connect(consumer);
 	if (vaultc == NULL) {
-		perror("as_connect");
-		as_consumer_shutdown(consumer);
+		perror("marquise_connect");
+		marquise_consumer_shutdown(consumer);
 		return 1;
 	}
 
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
 	int retcode = 0;
 	while ( fgets(buf, BUFSIZ, infile) == buf ) {
 		/* Ignore any line that doesn't start with a numeric
-		 * ID. This gets around pmacct's stupid logging of 
+		 * ID. This gets around pmacct's stupid logging of
 		 * totally unimportant warnings to stdout
 		 */
 		if (buf[0] < '0' || buf[0] > '9')  continue;
@@ -155,24 +155,24 @@ int main(int argc, char **argv) {
 
 		/* emit a frame for both parties */
 		if ( emit_tx_bytes(vaultc, collection_point, source_ip, timestamp, bytes) <= 0 ) {
-			perror("as_send_int"); retcode=1; break;
+			perror("marquise_send_int"); retcode=1; break;
 		}
 		if ( emit_rx_bytes(vaultc, collection_point, dest_ip, timestamp, bytes) <= 0 ) {
-			perror("as_send_int"); retcode=1; break;
+			perror("marquise_send_int"); retcode=1; break;
 		}
 		if ( emit_dest_ip(vaultc, collection_point, source_ip, timestamp, dest_ip) <= 0 ) {
-			perror("as_send_text"); retcode=1; break;
+			perror("marquise_send_text"); retcode=1; break;
 		}
 		if ( emit_src_ip(vaultc, collection_point, dest_ip, timestamp, source_ip) <= 0 ) {
-			perror("as_send_text"); retcode=1; break;
+			perror("marquise_send_text"); retcode=1; break;
 		}
 
 		free(source_ip);
 		free(dest_ip);
 	}
 
-	as_close(vaultc);
-	as_consumer_shutdown(consumer);
+	marquise_close(vaultc);
+	marquise_consumer_shutdown(consumer);
 
 	return retcode;
 }
