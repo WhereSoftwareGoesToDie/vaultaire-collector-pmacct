@@ -1,3 +1,4 @@
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,8 +7,14 @@
 
 #include <marquise.h>
 
+#define __STRINGIZE(x) #x
+#define _STRINGIZE(x) __STRINGIZE(x)
+#define __FILEPOS__ __FILE__ ":" _STRINGIZE(__LINE__)
+
 /* Max time to wait between batching up frames to send to voltaire */
-#define BATCH_PERIOD	1
+#define BATCH_PERIOD	0.1
+
+#define DEFAULT_LIBMARQUISE_ORIGIN	"pmacct2vault"
 
 /**
  * This is only going to fly if we are getting data in on the fly
@@ -60,8 +67,7 @@ static inline int emit_tx_bytes(marquise_connection connection,
 		uint64_t bytes) {
 	char * source_fields[] = { "type", "collection_point", "ip", "field" };
 	char * source_values[] = { "ip_traffic", "syd1", ip, "tx_bytes" };
-	return marquise_send_int(connection, source_fields, source_values, 4,
-				bytes, timestamp);
+	return marquise_send_int(connection, source_fields, source_values, 4, bytes, timestamp);
 }
 static inline int emit_rx_bytes(marquise_connection connection,
 		char *collection_point, char *ip, uint64_t timestamp,
@@ -109,7 +115,13 @@ int main(int argc, char **argv) {
 	}
 	collection_point = argv[1];
 
-	/* get a new consumer we can send frames to */
+	/* libmarquise currently requires the origin to be set by environment
+	 * variable. Set iff it is currently not in the environment
+	 */
+	setenv("LIBMARQUISE_ORIGIN",  DEFAULT_LIBMARQUISE_ORIGIN, 0);
+
+	/* get a new consumer we can send frames to 
+	 */
 	consumer = marquise_consumer_new(argv[2], BATCH_PERIOD);
 	if (consumer == NULL) {
 		perror("marquise_consumer_new"); return 1;
@@ -155,16 +167,16 @@ int main(int argc, char **argv) {
 
 		/* emit a frame for both parties */
 		if ( emit_tx_bytes(vaultc, collection_point, source_ip, timestamp, bytes) <= 0 ) {
-			perror("marquise_send_int"); retcode=1; break;
+			perror(__FILEPOS__ ": marquise_send_int"); retcode=1; break;
 		}
 		if ( emit_rx_bytes(vaultc, collection_point, dest_ip, timestamp, bytes) <= 0 ) {
-			perror("marquise_send_int"); retcode=1; break;
+			perror(__FILEPOS__ ": marquise_send_int"); retcode=1; break;
 		}
 		if ( emit_dest_ip(vaultc, collection_point, source_ip, timestamp, dest_ip) <= 0 ) {
-			perror("marquise_send_text"); retcode=1; break;
+			perror(__FILEPOS__ ": marquise_send_text"); retcode=1; break;
 		}
 		if ( emit_src_ip(vaultc, collection_point, dest_ip, timestamp, source_ip) <= 0 ) {
-			perror("marquise_send_text"); retcode=1; break;
+			perror(__FILEPOS__ ": marquise_send_text"); retcode=1; break;
 		}
 
 		free(source_ip);
