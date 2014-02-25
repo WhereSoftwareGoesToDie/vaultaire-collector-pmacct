@@ -11,6 +11,12 @@
 #define _STRINGIZE(x) __STRINGIZE(x)
 #define __FILEPOS__ __FILE__ ":" _STRINGIZE(__LINE__)
 
+#ifdef DEBUG
+#define DEBUG_PRINTF(formatstr, ...) fprintf(stderr, __FILEPOS__ ", %s() - " formatstr, __func__,  __VA_ARGS__)
+#else
+#define DEBUG_PRINTF(...)
+#endif
+
 /* Max time to wait between batching up frames to send to voltaire */
 #define BATCH_PERIOD	0.1
 
@@ -65,25 +71,38 @@ int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 static inline int emit_tx_bytes(marquise_connection connection,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
-	char * source_fields[] = { "type", "collection_point", "ip", "field" };
-	char * source_values[] = { "ip_traffic", "syd1", ip, "tx_bytes" };
-	return marquise_send_int(connection, source_fields, source_values, 4, bytes, timestamp);
+	char * source_fields[] = { "collection_point", "ip", "bytes" };
+	char * source_values[] = { collection_point, ip, "tx" };
+	int bytes_sent;
+	bytes_sent = marquise_send_int(connection,
+			source_fields, source_values, 3, bytes, timestamp);
+	DEBUG_PRINTF("sent %d bytes\n", bytes_sent);
+	return bytes_sent;
 }
 static inline int emit_rx_bytes(marquise_connection connection,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
-	char * source_fields[] = { "type", "collection_point", "ip", "field" };
-	char * source_values[] = { "ip_traffic", "syd1", ip, "rx_bytes" };
-	return marquise_send_int(connection, source_fields, source_values, 4,
-				bytes, timestamp);
+	char * source_fields[] = { "collection_point", "ip", "bytes" };
+	char * source_values[] = { collection_point, ip, "rx" };
+	int bytes_sent;
+	bytes_sent = marquise_send_int(connection,
+			source_fields, source_values, 3, bytes, timestamp);
+	DEBUG_PRINTF("sent %d bytes\n", bytes_sent);
+	return bytes_sent;
 }
+#undef LINK_SRC_DEST_FLOWS
+#ifdef LINK_SRC_DEST_FLOWS
 static inline int emit_dest_ip(marquise_connection connection,
 		char *collection_point, char *ip, uint64_t timestamp,
 		char *dest_ip) {
 	char * source_fields[] = { "type", "collection_point", "ip", "field" };
 	char * source_values[] = { "ip_traffic", "syd1", ip, "dest_ip" };
-	return marquise_send_text(connection, source_fields, source_values, 4,
-				dest_ip, strlen(dest_ip), timestamp);
+	int bytes_sent;
+	bytes_sent = marquise_send_text(connection,
+			source_fields, source_values, 4, 
+			dest_ip, strlen(dest_ip), timestamp);
+	DEBUG_PRINTF("sent %d bytes\n", bytes_sent);
+	return bytes_sent;
 }
 
 static inline int emit_src_ip(marquise_connection connection,
@@ -91,9 +110,14 @@ static inline int emit_src_ip(marquise_connection connection,
 		char *src_ip) {
 	char * source_fields[] = { "type", "collection_point", "ip", "field" };
 	char * source_values[] = { "ip_traffic", "syd1", ip, "src_ip" };
-	return marquise_send_text(connection, source_fields, source_values, 4,
-				src_ip, strlen(src_ip), timestamp);
+	int bytes_sent;
+	bytes_sent = marquise_send_text(connection,
+			source_fields, source_values, 4,
+			src_ip, strlen(src_ip), timestamp);
+	DEBUG_PRINTF("sent %d bytes\n", bytes_sent);
+	return bytes_sent;
 }
+#endif
 
 int main(int argc, char **argv) {
 	FILE *infile;
@@ -172,12 +196,14 @@ int main(int argc, char **argv) {
 		if ( emit_rx_bytes(vaultc, collection_point, dest_ip, timestamp, bytes) <= 0 ) {
 			perror(__FILEPOS__ ": marquise_send_int"); retcode=1; break;
 		}
+#ifdef LINK_SRC_DEST_FLOWS
 		if ( emit_dest_ip(vaultc, collection_point, source_ip, timestamp, dest_ip) <= 0 ) {
 			perror(__FILEPOS__ ": marquise_send_text"); retcode=1; break;
 		}
 		if ( emit_src_ip(vaultc, collection_point, dest_ip, timestamp, source_ip) <= 0 ) {
 			perror(__FILEPOS__ ": marquise_send_text"); retcode=1; break;
 		}
+#endif
 
 		free(source_ip);
 		free(dest_ip);

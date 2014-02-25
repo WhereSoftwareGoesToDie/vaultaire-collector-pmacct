@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -O0 -g
+CFLAGS=-Wall -O2 -g
 LDFLAGS=-lmarquise
 
 pmacct2vault:
