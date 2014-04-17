@@ -22,3 +22,4 @@ install:
 script:
   - autoreconf -i
   - ./configure && make && make check
+  - sudo make install
