@@ -1,6 +1,5 @@
 language: c
 install:
-  - sudo apt-get remove libzmq1
   - mkdir -p deps
   - cd deps
   - git clone https://github.com/anchor/libmarquise
@@ -15,6 +14,7 @@ install:
   - sudo make install
   - cd ../..
   - ./install_build_deps.sh
+  - sudo apt-get remove libzmq1
   - autoreconf -i
   - ./configure && make && make check && sudo make install
   - cd ../..
