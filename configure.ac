@@ -1,4 +1,4 @@
-AC_INIT([pmacct-vaultaire], [0.1.1], [sio@tesser.org])
+AC_INIT([pmacct-vaultaire], [1.0.0], [sio@tesser.org])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([subdir-objects])
 LT_INIT
