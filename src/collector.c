@@ -230,8 +230,8 @@ int main(int argc, char **argv) {
 	networkaddr_ll_t * ip_whitelist = NULL;
 
 	if (argc < 3) {
-		fprintf(stderr,"%s <collection point> <vaultaire endpoint> [<filename of ip networks to track>]\n\n"
-				"e.g.\n\t%s syd1 tcp://vaultaire-broker:5560\n",
+		fprintf(stderr,"%s <collection point> <marquise namespace> [<filename of ip networks to track>]\n\n"
+				"e.g.\n\t%s syd1 pmacct tcp://vaultaire-broker:5560\n",
 				argv[0], argv[0]);
 		return 1;
 	}
@@ -245,14 +245,9 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	/* libmarquise currently requires the origin to be set by environment
-	 * variable. Set iff it is currently not in the environment
-	 */
-	setenv("LIBMARQUISE_ORIGIN",  DEFAULT_LIBMARQUISE_ORIGIN, 0);
-
 	/* get a new consumer we can send frames to
 	 */
-	ctx = marquise_init("pmacct");
+	ctx = marquise_init(argv[2]);
 	if (ctx == NULL) {
 		perror("marquise_init"); return 1;
 	}
