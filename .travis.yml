@@ -5,10 +5,11 @@ install:
   - git clone https://github.com/anchor/libmarquise
   - cd libmarquise
   - git checkout v2
+  - autoreconf -if
   - ./configure && make && make check && sudo make install
   - cd ../..
 
 script:
-  - autoreconf -i
+  - autoreconf -if
   - ./configure && make && make check
   - sudo make install
