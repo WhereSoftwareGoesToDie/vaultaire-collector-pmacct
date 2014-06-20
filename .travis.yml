@@ -4,18 +4,7 @@ install:
   - cd deps
   - git clone https://github.com/anchor/libmarquise
   - cd libmarquise
-  - mkdir -p deps
-  - cd deps
-  - wget http://download.zeromq.org/zeromq-4.0.4.tar.gz
-  - tar -xf zeromq-4.0.4.tar.gz
-  - cd zeromq-4.0.4
-  - ./configure --prefix=/usr
-  - make
-  - sudo make install
-  - cd ../..
-  - ./install_build_deps.sh
-  - sudo apt-get remove libzmq1
-  - autoreconf -i
+  - git checkout v2
   - ./configure && make && make check && sudo make install
   - cd ../..
 
