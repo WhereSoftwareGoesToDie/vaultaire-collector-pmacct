@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
 
 	if (argc < 3) {
 		fprintf(stderr,"%s <collection point> <marquise namespace> [<filename of ip networks to track>]\n\n"
-				"e.g.\n\t%s syd1 pmacct tcp://vaultaire-broker:5560\n",
+				"e.g.\n\t%s syd1 pmacct\n",
 				argv[0], argv[0]);
 		return 1;
 	}
