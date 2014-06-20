@@ -78,7 +78,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = pmacct2vault$(EXEEXT)
+bin_PROGRAMS = vaultaire_collector_pmacct$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -94,9 +94,10 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_pmacct2vault_OBJECTS = pmacct2vault.$(OBJEXT)
-pmacct2vault_OBJECTS = $(am_pmacct2vault_OBJECTS)
-pmacct2vault_LDADD = $(LDADD)
+am_vaultaire_collector_pmacct_OBJECTS = collector.$(OBJEXT)
+vaultaire_collector_pmacct_OBJECTS =  \
+	$(am_vaultaire_collector_pmacct_OBJECTS)
+vaultaire_collector_pmacct_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -135,8 +136,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(pmacct2vault_SOURCES)
-DIST_SOURCES = $(pmacct2vault_SOURCES)
+SOURCES = $(vaultaire_collector_pmacct_SOURCES)
+DIST_SOURCES = $(vaultaire_collector_pmacct_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -283,7 +284,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -Wall -g
 AM_LDFLAGS = -lmarquise 
-pmacct2vault_SOURCES = pmacct2vault.c
+vaultaire_collector_pmacct_SOURCES = collector.c
 all: all-am
 
 .SUFFIXES:
@@ -368,9 +369,9 @@ clean-binPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
-pmacct2vault$(EXEEXT): $(pmacct2vault_OBJECTS) $(pmacct2vault_DEPENDENCIES) $(EXTRA_pmacct2vault_DEPENDENCIES) 
-	@rm -f pmacct2vault$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(pmacct2vault_OBJECTS) $(pmacct2vault_LDADD) $(LIBS)
+vaultaire_collector_pmacct$(EXEEXT): $(vaultaire_collector_pmacct_OBJECTS) $(vaultaire_collector_pmacct_DEPENDENCIES) $(EXTRA_vaultaire_collector_pmacct_DEPENDENCIES) 
+	@rm -f vaultaire_collector_pmacct$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(vaultaire_collector_pmacct_OBJECTS) $(vaultaire_collector_pmacct_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -378,7 +379,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pmacct2vault.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/collector.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
