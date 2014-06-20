@@ -16,7 +16,7 @@ AC_TYPE_SIZE_T
 AC_TYPE_UINT64_T
 
 AC_CHECK_FUNCS([strerror])
-AC_CHECK_LIB([marquise], [marquise_consumer_new])
+AC_CHECK_LIB([marquise], [marquise_init])
 
 AC_CONFIG_FILES([
  Makefile
