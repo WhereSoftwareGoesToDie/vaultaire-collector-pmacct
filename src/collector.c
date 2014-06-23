@@ -27,7 +27,7 @@
 #if _POSIX_C_SOURCE >= 200809L
 #define SCANF_ALLOCATE_STRING_FLAG "m"
 #elif defined(__GLIBC__) && (__GLIBC__ >= 2)
-#define SCANF_ALLOCATE_STRING_FLAG "s"
+#define SCANF_ALLOCATE_STRING_FLAG "a"
 #else
 #error "Please let us have POSIX.1-2008, glibc, or a puppy"
 #endif
