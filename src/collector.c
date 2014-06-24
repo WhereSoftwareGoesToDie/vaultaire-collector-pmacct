@@ -253,12 +253,12 @@ int main(int argc, char **argv) {
 		/* emit a frame for both parties (if the ip is whitelisted) */
 		if (is_address_in_whitelist(source_ip, ip_whitelist) == 1) {
 			if ( emit_tx_bytes(ctx, collection_point, source_ip, timestamp, bytes) <= 0 ) {
-				perror(__FILEPOS__ ": marquise_send_int"); retcode=1; break;
+				perror(__FILEPOS__ ": marquise_send_simple"); retcode=1; break;
 			}
 		}
 		if (is_address_in_whitelist(dest_ip, ip_whitelist) == 1) {
 			if ( emit_rx_bytes(ctx, collection_point, dest_ip, timestamp, bytes) <= 0 ) {
-				perror(__FILEPOS__ ": marquise_send_int"); retcode=1; break;
+				perror(__FILEPOS__ ": marquise_send_simple"); retcode=1; break;
 			}
 		}
 
