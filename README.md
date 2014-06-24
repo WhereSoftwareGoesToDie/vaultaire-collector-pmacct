@@ -1,4 +1,5 @@
-pmacct-vaultaire
-================
+vaultaire-collector-pmacct
+==========================
 
-A source for vaultaire that reads IP traffic data from pmacct
+A collector for [vaultaire](https://github.com/anchor/vaultaire) that 
+reads IP traffic data from pmacct.

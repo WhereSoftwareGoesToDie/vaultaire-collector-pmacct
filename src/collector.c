@@ -9,6 +9,8 @@
 
 #include <marquise.h>
 
+#include "util.h"
+
 /* Max time to wait between batching up frames to send to voltaire */
 #define BATCH_PERIOD	0.1
 #define DEFAULT_LIBMARQUISE_ORIGIN	"BENHUR"
@@ -27,11 +29,15 @@
 #if _POSIX_C_SOURCE >= 200809L
 #define SCANF_ALLOCATE_STRING_FLAG "m"
 #elif defined(__GLIBC__) && (__GLIBC__ >= 2)
-#define SCANF_ALLOCATE_STRING_FLAG "s"
+#define SCANF_ALLOCATE_STRING_FLAG "a"
 #else
 #error "Please let us have POSIX.1-2008, glibc, or a puppy"
 #endif
 #define SCANF_ALLOCATE_STRING "%" SCANF_ALLOCATE_STRING_FLAG "s"
+
+#define SOURCE_KEY_COLLECTION_POINT "collection_point"
+#define SOURCE_KEY_IP "ip"
+#define SOURCE_KEY_BYTES "bytes"
 
 
 /**
@@ -150,27 +156,31 @@ int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 		) == 3;
 }
 
-static inline int emit_tx_bytes(marquise_connection connection,
-		char *collection_point, char *ip, uint64_t timestamp,
-		uint64_t bytes) {
-	char * source_fields[] = { "collection_point", "ip", "bytes" };
-	char * source_values[] = { collection_point, ip, "tx" };
-	int bytes_sent;
-	bytes_sent = marquise_send_int(connection,
-			source_fields, source_values, 3, bytes, timestamp);
-	DEBUG_PRINTF("sent %d bytes\n", bytes_sent);
-	return bytes_sent;
+static inline int emit_bytes(marquise_ctx *ctx, char *source, 
+                             uint64_t timestamp, uint64_t bytes) {
+	uint64_t address = marquise_hash_identifier(source, strlen(source));
+	int ret;
+	ret = marquise_send_simple(ctx, address, timestamp, bytes);
+	if (ret != 0) {
+		DEBUG_PRINTF("successfully queued packet\n");
+	} else {
+		DEBUG_PRINTF("failed to send packet\n");
+	}	
+	return ret;
 }
-static inline int emit_rx_bytes(marquise_connection connection,
+
+static inline int emit_tx_bytes(marquise_ctx *ctx,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
-	char * source_fields[] = { "collection_point", "ip", "bytes" };
-	char * source_values[] = { collection_point, ip, "rx" };
-	int bytes_sent;
-	bytes_sent = marquise_send_int(connection,
-			source_fields, source_values, 3, bytes, timestamp);
-	DEBUG_PRINTF("sent %d bytes\n", bytes_sent);
-	return bytes_sent;
+	char *source = build_source(collection_point, ip, "tx");
+	return emit_bytes(ctx, source, timestamp, bytes);
+}
+
+static inline int emit_rx_bytes(marquise_ctx *ctx,
+		char *collection_point, char *ip, uint64_t timestamp,
+		uint64_t bytes) {
+	char *source = build_source(collection_point, ip, "rx");
+	return emit_bytes(ctx, source, timestamp, bytes);
 }
 
 int main(int argc, char **argv) {
@@ -182,13 +192,12 @@ int main(int argc, char **argv) {
 	uint64_t timestamp;
 	uint64_t last_timestamp;
 	char *collection_point;
-	marquise_consumer consumer;
-	marquise_connection vaultc;
+	marquise_ctx *ctx;
 	networkaddr_ll_t * ip_whitelist = NULL;
 
 	if (argc < 3) {
-		fprintf(stderr,"%s <collection point> <vaultaire endpoint> [<filename of ip networks to track>]\n\n"
-				"e.g.\n\t%s syd1 tcp://vaultaire-broker:5560\n",
+		fprintf(stderr,"%s <collection point> <marquise namespace> [<filename of ip networks to track>]\n\n"
+				"e.g.\n\t%s syd1 pmacct\n",
 				argv[0], argv[0]);
 		return 1;
 	}
@@ -202,22 +211,11 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	/* libmarquise currently requires the origin to be set by environment
-	 * variable. Set iff it is currently not in the environment
-	 */
-	setenv("LIBMARQUISE_ORIGIN",  DEFAULT_LIBMARQUISE_ORIGIN, 0);
-
 	/* get a new consumer we can send frames to
 	 */
-	consumer = marquise_consumer_new(argv[2], BATCH_PERIOD);
-	if (consumer == NULL) {
-		perror("marquise_consumer_new"); return 1;
-	}
-	vaultc = marquise_connect(consumer);
-	if (vaultc == NULL) {
-		perror("marquise_connect");
-		marquise_consumer_shutdown(consumer);
-		return 1;
+	ctx = marquise_init(argv[2]);
+	if (ctx == NULL) {
+		perror("marquise_init"); return 1;
 	}
 
 	last_timestamp = timestamp_now();
@@ -254,13 +252,13 @@ int main(int argc, char **argv) {
 
 		/* emit a frame for both parties (if the ip is whitelisted) */
 		if (is_address_in_whitelist(source_ip, ip_whitelist) == 1) {
-			if ( emit_tx_bytes(vaultc, collection_point, source_ip, timestamp, bytes) <= 0 ) {
-				perror(__FILEPOS__ ": marquise_send_int"); retcode=1; break;
+			if ( emit_tx_bytes(ctx, collection_point, source_ip, timestamp, bytes) != 0 ) {
+				perror(__FILEPOS__ ": marquise_send_simple"); retcode=1; break;
 			}
 		}
 		if (is_address_in_whitelist(dest_ip, ip_whitelist) == 1) {
-			if ( emit_rx_bytes(vaultc, collection_point, dest_ip, timestamp, bytes) <= 0 ) {
-				perror(__FILEPOS__ ": marquise_send_int"); retcode=1; break;
+			if ( emit_rx_bytes(ctx, collection_point, dest_ip, timestamp, bytes) != 0 ) {
+				perror(__FILEPOS__ ": marquise_send_simple"); retcode=1; break;
 			}
 		}
 
@@ -268,8 +266,7 @@ int main(int argc, char **argv) {
 		free(dest_ip);
 	}
 
-	marquise_close(vaultc);
-	marquise_consumer_shutdown(consumer);
+	marquise_shutdown(ctx);
 	free_whitelist(ip_whitelist);
 
 	return retcode;
