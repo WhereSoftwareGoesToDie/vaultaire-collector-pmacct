@@ -2,9 +2,9 @@ AM_CFLAGS = -Wall -g $(GLIB_2_CFLAGS)
 AM_LDFLAGS = -lmarquise $(GLIB_2_LIBS)
 
 TESTS=$(check_PROGRAMS)
-check_PROGRAMS=collector_test
+check_PROGRAMS=collector_util_test
 
-collector_test_SOURCES = util.c tests/collector_test.c
+collector_util_test_SOURCES = util.c tests/collector_util_test.c
 dist_noinst_HEADERS = util.h
 
 bin_PROGRAMS = vaultaire_collector_pmacct
