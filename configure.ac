@@ -13,7 +13,6 @@ PKG_CHECK_MODULES([GLIB_2], [glib-2.0 >= 2.5])
 AC_CHECK_HEADERS([stdint.h stdlib.h string.h syslog.h unistd.h])
 
 AC_TYPE_SIZE_T
-AC_TYPE_UINT64_T
 
 AC_CHECK_FUNCS([strerror])
 AC_CHECK_LIB([marquise], [marquise_init])
