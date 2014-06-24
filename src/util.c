@@ -27,19 +27,19 @@ char *build_source(char *collection_point, char *ip, const char *bytes) {
 	source_len += 1; // NULL
 	char *source = malloc(source_len);
 	strcpy(source, SOURCE_KEY_BYTES);
-	int idx = sizeof(SOURCE_KEY_BYTES);
+	int idx = sizeof(SOURCE_KEY_BYTES) - 1;
 	source[idx++] = ':';
 	strcpy(source + idx, bytes);
 	idx += bytes_len;
 	source[idx++] = ',';
 	strcpy(source + idx, SOURCE_KEY_COLLECTION_POINT);
-	idx += sizeof(SOURCE_KEY_COLLECTION_POINT);
+	idx += sizeof(SOURCE_KEY_COLLECTION_POINT) - 1;
 	source[idx++] = ':';
 	strcpy(source + idx, collection_point);
 	idx += collection_point_len;
 	source[idx++] = ',';
 	strcpy(source + idx, SOURCE_KEY_IP);
-	idx += sizeof(SOURCE_KEY_IP);
+	idx += sizeof(SOURCE_KEY_IP) - 1;
 	source[idx++] = ':';
 	strcpy(source + idx, ip);
 	idx += ip_len;
