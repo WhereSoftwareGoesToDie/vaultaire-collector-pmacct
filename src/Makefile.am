@@ -1,5 +1,5 @@
 AM_CFLAGS = -Wall -g $(GLIB_2_CFLAGS)
-AM_LDFLAGS = -lmarquise $(GLIB_2_LIBS)
+AM_LDFLAGS = -lmarquise -lrt $(GLIB_2_LIBS)
 
 TESTS=$(check_PROGRAMS)
 check_PROGRAMS=collector_util_test
