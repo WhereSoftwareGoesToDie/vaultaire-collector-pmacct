@@ -173,14 +173,18 @@ static inline int emit_tx_bytes(marquise_ctx *ctx,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
 	char *source = build_source(collection_point, ip, "tx");
-	return emit_bytes(ctx, source, timestamp, bytes);
+	int ret = emit_bytes(ctx, source, timestamp, bytes);
+	free(source);
+	return ret;
 }
 
 static inline int emit_rx_bytes(marquise_ctx *ctx,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
 	char *source = build_source(collection_point, ip, "rx");
-	return emit_bytes(ctx, source, timestamp, bytes);
+	int ret = emit_bytes(ctx, source, timestamp, bytes);
+	free(source);
+	return ret;
 }
 
 int main(int argc, char **argv) {
