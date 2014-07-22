@@ -6,8 +6,7 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
-#include <marquise.h>
+#include <glib/gtree.h>
 
 #include "util.h"
 
@@ -39,6 +38,10 @@
 #define SOURCE_KEY_IP "ip"
 #define SOURCE_KEY_BYTES "bytes"
 
+/**
+ * This is the set of cached source dict hashes
+ */
+GTree *sd_hashes;
 
 /**
  * This is only going to fly if we are getting data in on the fly
@@ -157,7 +160,7 @@ int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 }
 
 static inline int emit_bytes(marquise_ctx *ctx, char *source, 
-                             uint64_t timestamp, uint64_t bytes) {
+        marquise_source *marq_source, uint64_t timestamp, uint64_t bytes) {
 	uint64_t address = marquise_hash_identifier(source, strlen(source));
 	int ret;
 	ret = marquise_send_simple(ctx, address, timestamp, bytes);
@@ -166,6 +169,16 @@ static inline int emit_bytes(marquise_ctx *ctx, char *source,
 	} else {
 		DEBUG_PRINTF("failed to send packet\n");
 	}	
+    if (g_tree_lookup(sd_hashes, (gpointer)&address) == NULL) {
+        int herpaderp = 1;
+        g_tree_insert(sd_hashes, (gpointer)&address, (gpointer)&herpaderp);
+        ret = marquise_update_source(ctx, address, marq_source);
+    if (ret != 0) {
+	    	DEBUG_PRINTF("successfully queued source packet\n");
+    	} else {
+	    	DEBUG_PRINTF("failed to send source packet\n");
+    	}	
+    }
 	return ret;
 }
 
@@ -173,7 +186,8 @@ static inline int emit_tx_bytes(marquise_ctx *ctx,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
 	char *source = build_source(collection_point, ip, "tx");
-	int ret = emit_bytes(ctx, source, timestamp, bytes);
+    marquise_source *marq_source = build_marquise_source(collection_point, ip, "tx");
+	int ret = emit_bytes(ctx, source, marq_source, timestamp, bytes);
 	free(source);
 	return ret;
 }
@@ -182,9 +196,14 @@ static inline int emit_rx_bytes(marquise_ctx *ctx,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
 	char *source = build_source(collection_point, ip, "rx");
-	int ret = emit_bytes(ctx, source, timestamp, bytes);
+    marquise_source *marq_source = build_marquise_source(collection_point, ip, "rx");
+	int ret = emit_bytes(ctx, source, marq_source, timestamp, bytes);
 	free(source);
 	return ret;
+}
+
+gint hash_comp(gconstpointer a, gconstpointer b) {
+    return *(uint64_t*)a - *(uint64_t*)b;
 }
 
 int main(int argc, char **argv) {
@@ -199,6 +218,7 @@ int main(int argc, char **argv) {
 	marquise_ctx *ctx;
 	networkaddr_ll_t * ip_whitelist = NULL;
 
+    sd_hashes = g_tree_new(hash_comp);
 	if (argc < 3) {
 		fprintf(stderr,"%s <collection point> <marquise namespace> [<filename of ip networks to track>]\n\n"
 				"e.g.\n\t%s syd1 pmacct\n",

@@ -6,11 +6,20 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "util.h"
 
-#define SOURCE_KEY_COLLECTION_POINT "collection_point"
-#define SOURCE_KEY_IP "ip"
-#define SOURCE_KEY_BYTES "bytes"
-
+marquise_source *build_marquise_source(char *collection_point, char *ip, const char *bytes) {
+    size_t n_tags = SOURCE_NUM_TAGS;
+    char **fields = malloc(sizeof(char *) * n_tags);
+    char **values = malloc(sizeof(char *) * n_tags);
+    fields[0] = strdup(SOURCE_KEY_BYTES);
+    values[0]   = strdup(bytes);
+    fields[1] = strdup(SOURCE_KEY_COLLECTION_POINT);
+    values[1]   = strdup(collection_point);
+    fields[2] = strdup(SOURCE_KEY_IP);
+    values[2]   = strdup(ip);
+    return marquise_new_source(fields, values, n_tags);
+}
 
 char *build_source(char *collection_point, char *ip, const char *bytes) {
 	/* order matters */
