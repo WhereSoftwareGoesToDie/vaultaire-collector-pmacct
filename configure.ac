@@ -1,4 +1,4 @@
-AC_INIT([vaultaire-collector-pmacct], [1.0.0], [sio@tesser.org])
+AC_INIT([vaultaire-collector-pmacct], [1.0.0], [engineering@anchor.com.au])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([subdir-objects])
 LT_INIT
