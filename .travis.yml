@@ -7,6 +7,8 @@ install:
   - autoreconf -if
   - ./configure && make && make check && sudo make install
   - cd ../..
+  - sudo su -c "echo /usr/local/lib > /etc/ld.so.conf.d/local.conf"
+  - sudo ldconfig
 
 script:
   - autoreconf -if
