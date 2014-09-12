@@ -8,19 +8,16 @@
 #include <arpa/inet.h>
 #include "util.h"
 
-marquise_source *build_marquise_source(char *collection_point, char *ip, const char *bytes) {
-	size_t n_tags = SOURCE_NUM_TAGS;
-	char **fields = malloc(sizeof(char *) * n_tags);
-	char **values = malloc(sizeof(char *) * n_tags);
-	fields[0] = strdup(SOURCE_KEY_BYTES);
-	values[0]   = strdup(bytes);
-	fields[1] = strdup(SOURCE_KEY_COLLECTION_POINT);
-	values[1]   = strdup(collection_point);
-	fields[2] = strdup(SOURCE_KEY_IP);
-	values[2]   = strdup(ip);
-	return marquise_new_source(fields, values, n_tags);
-}
-
+/* This is a specialised version of libmarquise's serialise_marquise_source
+ * function.  The intent is that this builds a unique serialisation for a given
+ * primary key 3-tuple. We don't want to use libmarquise's
+ * serialise_marquise_source because it may potentially change, and include
+ * extra fields, etc.  This here locks us in to (tx/rx, collection_point,
+ * ip_address) explicitly.
+ *
+ * This is what build_address_string() output looks like:
+ *     bytes:rx,collection_point:syd1,ip:202.4.224.53,
+ */
 unsigned char *build_address_string(char *collection_point, char *ip, const char *bytes) {
 	/* Always do things in this order to ensure
 	 * consistent results from siphash

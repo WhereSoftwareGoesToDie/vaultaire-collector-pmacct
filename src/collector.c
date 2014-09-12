@@ -178,8 +178,12 @@ static inline int emit_tx_bytes(marquise_ctx *ctx,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
 	unsigned char *address_string = build_address_string(collection_point, ip, "tx");
-	marquise_source *marq_source = build_marquise_source(collection_point, ip, "tx");
+	char* source_fields[] = { SOURCE_KEY_BYTES, SOURCE_KEY_COLLECTION_POINT, SOURCE_KEY_IP };
+	char* source_values[] = { "tx", collection_point, ip };
+	marquise_source *marq_source = marquise_new_source(source_fields, source_values, SOURCE_NUM_TAGS);
+	// XXX: should check for NULL before use
 	int ret = emit_bytes(ctx, address_string, marq_source, timestamp, bytes);
+	marquise_free_source(marq_source);
 	free(address_string);
 	return ret;
 }
@@ -188,8 +192,12 @@ static inline int emit_rx_bytes(marquise_ctx *ctx,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
 	unsigned char *address_string = build_address_string(collection_point, ip, "rx");
-	marquise_source *marq_source = build_marquise_source(collection_point, ip, "rx");
+	char* source_fields[] = { SOURCE_KEY_BYTES, SOURCE_KEY_COLLECTION_POINT, SOURCE_KEY_IP };
+	char* source_values[] = { "rx", collection_point, ip };
+	marquise_source *marq_source = marquise_new_source(source_fields, source_values, SOURCE_NUM_TAGS);
+	// XXX: should check for NULL before use
 	int ret = emit_bytes(ctx, address_string, marq_source, timestamp, bytes);
+	marquise_free_source(marq_source);
 	free(address_string);
 	return ret;
 }
