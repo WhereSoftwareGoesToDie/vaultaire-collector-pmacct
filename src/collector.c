@@ -153,9 +153,9 @@ int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 		) == 3;
 }
 
-static inline int emit_bytes(marquise_ctx *ctx, char *address_string,
+static inline int emit_bytes(marquise_ctx *ctx, const unsigned char *address_string,
 		marquise_source *marq_source, uint64_t timestamp, uint64_t bytes) {
-	uint64_t address = marquise_hash_identifier(address_string, strlen(address_string));
+	uint64_t address = marquise_hash_identifier(address_string, strlen((char*)address_string));
 	int success;
 	success = marquise_send_simple(ctx, address, timestamp, bytes);
 	if (success == 0) {
@@ -177,7 +177,7 @@ static inline int emit_bytes(marquise_ctx *ctx, char *address_string,
 static inline int emit_tx_bytes(marquise_ctx *ctx,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
-	char *address_string = build_address_string(collection_point, ip, "tx");
+	unsigned char *address_string = build_address_string(collection_point, ip, "tx");
 	marquise_source *marq_source = build_marquise_source(collection_point, ip, "tx");
 	int ret = emit_bytes(ctx, address_string, marq_source, timestamp, bytes);
 	free(address_string);
@@ -187,7 +187,7 @@ static inline int emit_tx_bytes(marquise_ctx *ctx,
 static inline int emit_rx_bytes(marquise_ctx *ctx,
 		char *collection_point, char *ip, uint64_t timestamp,
 		uint64_t bytes) {
-	char *address_string = build_address_string(collection_point, ip, "rx");
+	unsigned char *address_string = build_address_string(collection_point, ip, "rx");
 	marquise_source *marq_source = build_marquise_source(collection_point, ip, "rx");
 	int ret = emit_bytes(ctx, address_string, marq_source, timestamp, bytes);
 	free(address_string);

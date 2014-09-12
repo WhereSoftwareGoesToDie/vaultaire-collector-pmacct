@@ -13,4 +13,4 @@
 
 marquise_source *build_marquise_source(char *collection_point, char *ip, const char *bytes);
 char *serialise_marquise_source(marquise_source *marq_source);
-char *build_address_string(char *collection_point, char *ip, const char *bytes);
+unsigned char *build_address_string(char *collection_point, char *ip, const char *bytes);

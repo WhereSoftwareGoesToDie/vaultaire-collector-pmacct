@@ -38,16 +38,18 @@ char *serialise_marquise_source(marquise_source *marq_source) {
 		i += strlen(fields[i]);
 		strcpy(str + i, values[i]);
 		i += strlen(values[i]);
-	} 
+	}
 	str[i] = '\0';
 	return str;
 }
 
-char *build_address_string(char *collection_point, char *ip, const char *bytes) {
-	/* order matters */
+unsigned char *build_address_string(char *collection_point, char *ip, const char *bytes) {
+	/* Always do things in this order to ensure
+	 * consistent results from siphash
+	 */
 	size_t source_len = 	sizeof(SOURCE_KEY_BYTES) +
 				sizeof(SOURCE_KEY_COLLECTION_POINT) +
-				sizeof(SOURCE_KEY_IP); 
+				sizeof(SOURCE_KEY_IP);
 	size_t bytes_len = strlen(bytes);
 	size_t collection_point_len = strlen(collection_point);
 	size_t ip_len = strlen(ip);
@@ -76,5 +78,5 @@ char *build_address_string(char *collection_point, char *ip, const char *bytes) 
 	idx += ip_len;
 	source[idx++] = ',';
 	source[idx++] = '\0';
-	return source;
+	return (unsigned char*)source;
 }
