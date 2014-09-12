@@ -153,7 +153,7 @@ int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 		) == 3;
 }
 
-static inline int emit_bytes(marquise_ctx *ctx, char *address_string, 
+static inline int emit_bytes(marquise_ctx *ctx, char *address_string,
 		marquise_source *marq_source, uint64_t timestamp, uint64_t bytes) {
 	uint64_t address = marquise_hash_identifier(address_string, strlen(address_string));
 	int success;
@@ -163,14 +163,14 @@ static inline int emit_bytes(marquise_ctx *ctx, char *address_string,
 	} else {
 		DEBUG_PRINTF("failed to send packet\n");
 		return success;
-	}	
+	}
 	success = marquise_update_source(ctx, address, marq_source);
 	if (success == 0) {
 		DEBUG_PRINTF("successfully queued source packet\n");
 	} else {
 		DEBUG_PRINTF("failed to send source packet\n");
 	return success;
-	}		
+	}
 	return 0;
 }
 
