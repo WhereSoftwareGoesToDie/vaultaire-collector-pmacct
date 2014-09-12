@@ -21,28 +21,6 @@ marquise_source *build_marquise_source(char *collection_point, char *ip, const c
 	return marquise_new_source(fields, values, n_tags);
 }
 
-char *serialise_marquise_source(marquise_source *marq_source) {
-	char **fields = marq_source->fields;
-	char **values = marq_source->values;
-	int n = marq_source->n_tags;
-	int length = 1; //NULL byte at end
-	unsigned int i;
-	for (i = 0; i < n; i++) {
-		length += strlen(fields[i]);
-		length += strlen(values[i]);
-	}
-	char *str = malloc(sizeof(char) * length);
-	i = 0;
-	while (i < length) {
-		strcpy(str + i, fields[i]);
-		i += strlen(fields[i]);
-		strcpy(str + i, values[i]);
-		i += strlen(values[i]);
-	}
-	str[i] = '\0';
-	return str;
-}
-
 unsigned char *build_address_string(char *collection_point, char *ip, const char *bytes) {
 	/* Always do things in this order to ensure
 	 * consistent results from siphash
