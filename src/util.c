@@ -1,3 +1,9 @@
+#ifdef FISHHOOK_IS_CRAP
+/* FIXME: Use a real ifdef */
+/* This is needed for stpncpy() on RHEL/CentOS 5.x, it's in string.h */
+#define _GNU_SOURCE
+#endif /* FISHHOOK_IS_CRAP */
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
