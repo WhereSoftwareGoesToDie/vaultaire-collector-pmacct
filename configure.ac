@@ -9,6 +9,8 @@ AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
+AC_DEFINE([FISHHOOK_IS_CRAP])
+
 PKG_CHECK_MODULES([GLIB_2], [glib-2.0 >= 2.5])
 AC_CHECK_HEADERS([stdint.h stdlib.h string.h syslog.h unistd.h])
 
