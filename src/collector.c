@@ -9,7 +9,7 @@
 
 #include "util.h"
 
-/* Max time to wait between batching up frames to send to voltaire */
+/* Max time to wait between batching up frames to send to Vaultaire */
 #define BATCH_PERIOD	0.1
 #define DEFAULT_LIBMARQUISE_ORIGIN	"BENHUR"
 
@@ -37,9 +37,9 @@
 #define SOURCE_KEY_IP "ip"
 #define SOURCE_KEY_BYTES "bytes"
 
-/**
+/*
  * This is only going to fly if we are getting data in on the fly
- * and we have no other timestamp source
+ * and we have no other timestamp source.
  */
 uint64_t timestamp_now() {
 	struct timespec ts;
@@ -53,7 +53,7 @@ typedef struct {
 	void * next;
 } networkaddr_ll_t;
 
-/* returns 1 if it is in the whitelist, 0 if it is not, or -1
+/* Returns 1 if it is in the whitelist, 0 if it is not, or -1
  * if it is not a well-formed address
  */
 static inline int is_address_in_whitelist(char *ipaddr , networkaddr_ll_t *whitelist) {
@@ -122,7 +122,7 @@ networkaddr_ll_t * read_ip_whitelist(char *pathname) {
 	return head;
 }
 
-/*K
+/*
  * parse a pmacct record line.
  *
  * *source_ip and *dest_ip are allocated by libc
@@ -139,7 +139,7 @@ int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 	 * ID CLASS SRC_MAC DST_MAC VLAN SRC_AS DST_AS SRC_IP DST_IP SRC_PORT DST_PORT TCP_FLAGS PROTOCOL TOS PACKETS FLOWS BYTES
 	 * 0 unknown 00:00:00:00:00:00 00:00:00:00:00:00 0 0 0 202.4.228.250 180.76.5.15 0 0 0 ip 0 24 0 34954
 	 *
-	 * We ignore everything other than source IP, destination IP, and bytes
+	 * We ignore everything other than source IP, destination IP, and bytes.
 	 */
 	*source_ip = NULL;
 	*dest_ip = NULL;
@@ -230,8 +230,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	/* get a new consumer we can send frames to
-	 */
+	/* Get a new consumer we can send frames to */
 	ctx = marquise_init(argv[2]);
 	if (ctx == NULL) {
 		perror("marquise_init"); return 1;
@@ -245,19 +244,19 @@ int main(int argc, char **argv) {
 	while ( fgets(buf, BUFSIZ, infile) == buf ) {
 		/* Ignore any line that doesn't start with a numeric
 		 * ID. This gets around pmacct's stupid logging of
-		 * totally unimportant warnings to stdout
+		 * totally unimportant warnings to stdout.
 		 */
 		if (buf[0] < '0' || buf[0] > '9') continue;
 
 		/* Keep timestamp the same for all items based on the same entry
-		 * in case we need to cross correlate them later
+		 * in case we need to cross correlate them later.
 		 */
 		timestamp = timestamp_now();
 
-		/* the 2tuple of source,timestamp must be unique for each frame
+		/* The 2tuple of source,timestamp must be unique for each frame.
 		 *
 		 * Check to make sure that if we have a really course clock that we
-		 * are still maintaining that invariant
+		 * are still maintaining that invariant.
 		 */
 		if (timestamp < last_timestamp)
 			timestamp = last_timestamp + 1; /* Great. NTP skew. My lucky day */
@@ -269,7 +268,7 @@ int main(int argc, char **argv) {
 		if (! parse_pmacct_record(buf, &source_ip, &dest_ip, &bytes))
 			continue; /* Doesn't look like it's actually a record */
 
-		/* emit a frame for both parties (if the ip is whitelisted) */
+		/* Emit a frame for both parties (if the ip is whitelisted) */
 		if (is_address_in_whitelist(source_ip, ip_whitelist) == 1) {
 			if ( emit_tx_bytes(ctx, collection_point, source_ip, timestamp, bytes) != 0 ) {
 				perror(__FILEPOS__ ": marquise_send_simple"); retcode=1; break;
