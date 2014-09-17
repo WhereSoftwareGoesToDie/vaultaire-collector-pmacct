@@ -12,3 +12,12 @@ install-sh
 missing
 src/Makefile.in
 test-driver
+
+# ./configure
+Makefile
+config.log
+config.status
+libtool
+src/.deps/
+src/Makefile
+src/tests/.deps/
