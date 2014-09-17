@@ -21,3 +21,8 @@ libtool
 src/.deps/
 src/Makefile
 src/tests/.deps/
+
+# make
+src/collector.o
+src/util.o
+src/vaultaire_collector_pmacct
