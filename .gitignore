@@ -1,0 +1,28 @@
+# autoreconf -if
+INSTALL
+Makefile.in
+aclocal.m4
+autom4te.cache/
+compile
+config.guess
+config.sub
+configure
+depcomp
+install-sh
+missing
+src/Makefile.in
+test-driver
+
+# ./configure
+Makefile
+config.log
+config.status
+libtool
+src/.deps/
+src/Makefile
+src/tests/.deps/
+
+# make
+src/collector.o
+src/util.o
+src/vaultaire_collector_pmacct

@@ -8,8 +8,8 @@ void test_build_address_string() {
 	char *collection_point = "syd1";
 	char *ip = "127.0.0.1";
 	const char *bytes = "tx";
-	char *res = build_address_string(collection_point, ip, bytes);
-	g_assert_cmpstr(res, ==, "bytes:tx,collection_point:syd1,ip:127.0.0.1,");
+	unsigned char *res = build_address_string(collection_point, ip, bytes);
+	g_assert_cmpstr((char*)res, ==, "bytes:tx,collection_point:syd1,ip:127.0.0.1,");
 	return;
 }
 
