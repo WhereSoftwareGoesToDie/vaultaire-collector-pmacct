@@ -153,6 +153,37 @@ int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 		) == 3;
 }
 
+/*
+ * parse an sfacct record line. (version 0.12.5 on acct1)
+ *
+ * *source_ip and *dest_ip are allocated by libc
+ * caller must free() *source_ip and *dest_ip iff the call was successful
+ * (as per sscanf)
+ *
+ * pre: instring is zero terminated
+ *
+ * returns >= 1 on success
+ */
+int parse_sfacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *bytes) {
+	/* Format (with even more whitespace in actual input):
+	 *
+	 * TAG TAG2 CLASS   IN_IFACE OUT_IFACE SRC_MAC            DST_MAC            VLAN COS SRC_AS DST_AS BGP_COMMS AS_PATH PREF MED PEER_SRC_AS PEER_DST_AS PEER_SRC_IP      PEER_DST_IP SRC_IP           DST_IP          SRC_MASK DST_MASK SRC_PORT DST_PORT TCP_FLAGS PROTOCOL TOS PACKETS FLOWS BYTES
+	 * 0   0    unknown 0        0         00:00:00:00:00:00  00:00:00:00:00:00  0    0   0      0                ^$      0    0   0           0                                        110.173.143.36   204.246.163.76  0        0        0        0        0         ip       0   19250   0     20520500
+	 *
+	 * We ignore everything other than source IP, destination IP, and bytes.
+	 */
+	*source_ip = NULL;
+	*dest_ip = NULL;
+	return sscanf(cs,
+		"%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s%*s" /* 16 fields that we don't care about (TAG -> PEER_DST_IP), PEER_SRC_IP and PEER_DST_IP don't have any output */
+		SCANF_ALLOCATE_STRING         /* SRC_IP */
+		SCANF_ALLOCATE_STRING         /* DST_IP */
+		"%*s%*s%*s%*s%*s%*s%*s%*s%*s" /* Nine more fields, SRC_MASK -> FLOWS */
+		"%lu",                        /* BYTES */
+		source_ip, dest_ip, bytes
+		) == 3;
+}
+
 static inline int emit_bytes(marquise_ctx *ctx, const unsigned char *address_string,
 		marquise_source *marq_source, uint64_t timestamp, uint64_t bytes) {
 	uint64_t address = marquise_hash_identifier(address_string, strlen((char*)address_string));
