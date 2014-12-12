@@ -123,7 +123,7 @@ networkaddr_ll_t * read_ip_whitelist(char *pathname) {
 }
 
 /*
- * parse a pmacct record line.
+ * parse a pmacct record line. (version 0.11.6-cvs on fishhook)
  *
  * *source_ip and *dest_ip are allocated by libc
  * caller must free() *source_ip and *dest_ip iff the call was successful
@@ -136,19 +136,19 @@ networkaddr_ll_t * read_ip_whitelist(char *pathname) {
 int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *bytes) {
 	/* Format (with more whitespace in actual input):
 	 *
-	 * ID CLASS SRC_MAC DST_MAC VLAN SRC_AS DST_AS SRC_IP DST_IP SRC_PORT DST_PORT TCP_FLAGS PROTOCOL TOS PACKETS FLOWS BYTES
-	 * 0 unknown 00:00:00:00:00:00 00:00:00:00:00:00 0 0 0 202.4.228.250 180.76.5.15 0 0 0 ip 0 24 0 34954
+	 * ID CLASS   SRC_MAC           DST_MAC           VLAN SRC_AS DST_AS SRC_IP        DST_IP      SRC_PORT DST_PORT TCP_FLAGS PROTOCOL TOS PACKETS FLOWS BYTES
+	 * 0  unknown 00:00:00:00:00:00 00:00:00:00:00:00 0    0      0      202.4.228.250 180.76.5.15 0        0        0         ip       0   24      0     34954
 	 *
 	 * We ignore everything other than source IP, destination IP, and bytes.
 	 */
 	*source_ip = NULL;
 	*dest_ip = NULL;
 	return sscanf(cs,
-		"%*s%*s%*s%*s%*s%*s%*s"
-		SCANF_ALLOCATE_STRING
-		SCANF_ALLOCATE_STRING
-		"%*s%*s%*s%*s%*s%*s%*s"
-		"%lu",
+		"%*s%*s%*s%*s%*s%*s%*s" /* Seven! Seven fields! HA HA HAAA! (ID -> DST_AS) */
+		SCANF_ALLOCATE_STRING   /* SRC_IP */
+		SCANF_ALLOCATE_STRING   /* DST_IP */
+		"%*s%*s%*s%*s%*s%*s%*s" /* Seven more fields, SRC_PORT -> FLOWS */
+		"%lu",                  /* BYTES */
 		source_ip, dest_ip, bytes
 		) == 3;
 }
