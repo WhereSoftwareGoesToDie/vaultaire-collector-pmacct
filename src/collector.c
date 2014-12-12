@@ -190,18 +190,19 @@ static inline int emit_bytes(marquise_ctx *ctx, const unsigned char *address_str
 	int success;
 	success = marquise_send_simple(ctx, address, timestamp, bytes);
 	if (success == 0) {
-		DEBUG_PRINTF("%s\n", "successfully queued packet");
+		DEBUG_PRINTF("successfully queued datapoint:  %s with %lu bytes\n", address_string, bytes);
 	} else {
-		DEBUG_PRINTF("%s\n", "failed to send packet");
+		DEBUG_PRINTF("failed to enqueue datapoint:    %s with %lu bytes\n\n", address_string, bytes);
 		return success;
 	}
 	success = marquise_update_source(ctx, address, marq_source);
 	if (success == 0) {
-		DEBUG_PRINTF("%s\n", "successfully queued source packet");
+		DEBUG_PRINTF("successfully queued sourcedict: address %lu for %s\n", address, address_string);
 	} else {
-		DEBUG_PRINTF("%s\n", "failed to send source packet");
-	return success;
+		DEBUG_PRINTF("failed to enqueue sourcedict:   address %lu for %s\n\n", address, address_string);
+		return success;
 	}
+	DEBUG_PRINTF("%s", "\n");
 	return 0;
 }
 
