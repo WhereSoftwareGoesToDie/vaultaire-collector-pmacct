@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
+#include <getopt.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -235,6 +236,17 @@ static inline int emit_rx_bytes(marquise_ctx *ctx,
 }
 
 int main(int argc, char **argv) {
+	extern char *optarg;
+	extern int optind;
+	int sfacct_flag = 0;
+	int c;
+	int remaining_args;
+	static char usage[] = "%s [-s] <collection point> <marquise namespace> [<filename of ip networks to track>]\n\n"
+				"    eg.\n"
+				"\t%s    syd1 pmacct\n"
+				"\t%s -s lax1 sfacct\n"
+				;
+
 	FILE *infile;
 	char buf[BUFSIZ];
 	char *source_ip;
@@ -243,18 +255,34 @@ int main(int argc, char **argv) {
 	uint64_t timestamp;
 	uint64_t last_timestamp;
 	char *collection_point;
+	char *namespace;
 	marquise_ctx *ctx;
 	networkaddr_ll_t * ip_whitelist = NULL;
 
-	if (argc < 3) {
-		fprintf(stderr,"%s <collection point> <marquise namespace> [<filename of ip networks to track>]\n\n"
-				"e.g.\n\t%s syd1 pmacct\n",
-				argv[0], argv[0]);
+
+	while ((c = getopt(argc, argv, "s")) != -1)
+		switch(c) {
+			case 's':
+				sfacct_flag = 1;
+				break;
+		}
+	DEBUG_PRINTF("sfacct_flag = %d\n", sfacct_flag);
+
+	remaining_args = argc - optind;
+	DEBUG_PRINTF("optind = %d\n", optind);
+	DEBUG_PRINTF("argc   = %d\n", argc);
+	DEBUG_PRINTF("Remaining args: %d\n", remaining_args);
+
+	/* We require at least (collection point, marquise namespace), and optionally (ip_space.txt) */
+	if ((remaining_args < 2) || (remaining_args > 3)) {
+		fprintf(stderr, usage, argv[0], argv[0], argv[0]);
 		return 1;
 	}
-	collection_point = argv[1];
-	if (argc > 3) {
-		ip_whitelist = read_ip_whitelist(argv[3]);
+
+	collection_point = argv[optind++];
+	namespace        = argv[optind++];
+	if (remaining_args == 3) {
+		ip_whitelist = read_ip_whitelist(argv[optind]);
 		if (ip_whitelist == NULL) {
 			if (errno == 0)
 				fprintf(stderr, "invalid or empty ip whitelist file\n");
@@ -262,8 +290,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	/* Get a new consumer we can send frames to */
-	ctx = marquise_init(argv[2]);
+	/* Get a new context we can send frames to */
+	ctx = marquise_init(namespace);
 	if (ctx == NULL) {
 		perror("marquise_init"); return 1;
 	}
@@ -271,6 +299,17 @@ int main(int argc, char **argv) {
 	last_timestamp = timestamp_now();
 
 	infile = stdin; /* slack */
+
+	/* Select a parser function depending on our mode. */
+	int (*parser)(char *cs, char **source_ip, char **dest_ip, uint64_t *bytes);
+	if (sfacct_flag) {
+		parser = parse_sfacct_record;
+		DEBUG_PRINTF("%s\n", "We're parsing sfacct records");
+	} else {
+		parser = parse_pmacct_record;
+		DEBUG_PRINTF("%s\n", "We're parsing pmacct records");
+	}
+
 
 	int retcode = 0;
 	while ( fgets(buf, BUFSIZ, infile) == buf ) {
@@ -297,7 +336,7 @@ int main(int argc, char **argv) {
 		last_timestamp = timestamp;
 
 		buf[BUFSIZ-1] = 0;
-		if (! parse_pmacct_record(buf, &source_ip, &dest_ip, &bytes))
+		if (! parser(buf, &source_ip, &dest_ip, &bytes))
 			continue; /* Doesn't look like it's actually a record */
 
 		/* Emit a frame for both parties (if the ip is whitelisted) */
