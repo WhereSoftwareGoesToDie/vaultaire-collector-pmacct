@@ -190,16 +190,16 @@ static inline int emit_bytes(marquise_ctx *ctx, const unsigned char *address_str
 	int success;
 	success = marquise_send_simple(ctx, address, timestamp, bytes);
 	if (success == 0) {
-		DEBUG_PRINTF("successfully queued packet\n");
+		DEBUG_PRINTF("%s\n", "successfully queued packet");
 	} else {
-		DEBUG_PRINTF("failed to send packet\n");
+		DEBUG_PRINTF("%s\n", "failed to send packet");
 		return success;
 	}
 	success = marquise_update_source(ctx, address, marq_source);
 	if (success == 0) {
-		DEBUG_PRINTF("successfully queued source packet\n");
+		DEBUG_PRINTF("%s\n", "successfully queued source packet");
 	} else {
-		DEBUG_PRINTF("failed to send source packet\n");
+		DEBUG_PRINTF("%s\n", "failed to send source packet");
 	return success;
 	}
 	return 0;
