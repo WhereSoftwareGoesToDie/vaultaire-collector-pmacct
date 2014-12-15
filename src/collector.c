@@ -9,7 +9,6 @@
 #include <arpa/inet.h>
 
 #include "collector.h"
-#include "util.h"
 
 uint64_t timestamp_now() {
 	struct timespec ts;
@@ -17,8 +16,8 @@ uint64_t timestamp_now() {
 	return (ts.tv_sec*1000000000) + ts.tv_nsec;
 }
 
-/* Returns 1 if it is in the whitelist, 0 if it is not, or -1
- * if it is not a well-formed address
+/* Returns 1 if it is in the whitelist, 0 if it is not,
+ * or -1 if it is a malformed address.
  */
 static inline int is_address_in_whitelist(char *ipaddr , networkaddr_ll_t *whitelist) {
 	struct in_addr addr;
@@ -86,17 +85,6 @@ networkaddr_ll_t * read_ip_whitelist(char *pathname) {
 	return head;
 }
 
-/*
- * parse a pmacct record line. (version 0.11.6-cvs on fishhook)
- *
- * *source_ip and *dest_ip are allocated by libc
- * caller must free() *source_ip and *dest_ip iff the call was successful
- * (as per sscanf)
- *
- * pre: instring is zero terminated
- *
- * returns >= 1 on success
- */
 int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *bytes) {
 	/* Format (with more whitespace in actual input):
 	 *
@@ -117,17 +105,6 @@ int parse_pmacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 		) == 3;
 }
 
-/*
- * parse an sfacct record line. (version 0.12.5 on acct1)
- *
- * *source_ip and *dest_ip are allocated by libc
- * caller must free() *source_ip and *dest_ip iff the call was successful
- * (as per sscanf)
- *
- * pre: instring is zero terminated
- *
- * returns >= 1 on success
- */
 int parse_sfacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *bytes) {
 	/* Format (with even more whitespace in actual input):
 	 *
@@ -148,8 +125,12 @@ int parse_sfacct_record(char *cs, char **source_ip, char **dest_ip, uint64_t *by
 		) == 3;
 }
 
-static inline int emit_bytes(marquise_ctx *ctx, const unsigned char *address_string,
-		marquise_source *marq_source, uint64_t timestamp, uint64_t bytes) {
+static inline int emit_bytes(marquise_ctx        *ctx,
+                             const unsigned char *address_string,
+                             marquise_source     *marq_source,
+                             uint64_t             timestamp,
+                             uint64_t             bytes
+                            ) {
 	uint64_t address = marquise_hash_identifier(address_string, strlen((char*)address_string));
 	int success;
 	success = marquise_send_simple(ctx, address, timestamp, bytes);
@@ -171,8 +152,11 @@ static inline int emit_bytes(marquise_ctx *ctx, const unsigned char *address_str
 }
 
 static inline int emit_tx_bytes(marquise_ctx *ctx,
-		char *collection_point, char *ip, uint64_t timestamp,
-		uint64_t bytes) {
+                                char     *collection_point,
+                                char     *ip,
+                                uint64_t  timestamp,
+                                uint64_t  bytes
+                               ) {
 	unsigned char *address_string = build_address_string(collection_point, ip, "tx");
 	char* source_fields[] = { SOURCE_KEY_BYTES, SOURCE_KEY_COLLECTION_POINT, SOURCE_KEY_IP };
 	char* source_values[] = { "tx", collection_point, ip };
@@ -185,8 +169,11 @@ static inline int emit_tx_bytes(marquise_ctx *ctx,
 }
 
 static inline int emit_rx_bytes(marquise_ctx *ctx,
-		char *collection_point, char *ip, uint64_t timestamp,
-		uint64_t bytes) {
+                                char     *collection_point,
+                                char     *ip,
+                                uint64_t  timestamp,
+                                uint64_t  bytes
+                               ) {
 	unsigned char *address_string = build_address_string(collection_point, ip, "rx");
 	char* source_fields[] = { SOURCE_KEY_BYTES, SOURCE_KEY_COLLECTION_POINT, SOURCE_KEY_IP };
 	char* source_values[] = { "rx", collection_point, ip };
