@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "collector.h"
 #include "util.h"
+#include "collector.h"
 
 #define PMACCT_SAMPLE_DATAFILE "sample_pmacct.data"
 #define SFACCT_SAMPLE_DATAFILE "sample_sfacct.data"

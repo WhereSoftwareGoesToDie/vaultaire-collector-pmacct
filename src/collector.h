@@ -22,6 +22,9 @@
 #endif
 #define SCANF_ALLOCATE_STRING "%" SCANF_ALLOCATE_STRING_FLAG "s"
 
+#include <netinet/in.h>
+
+
 typedef struct {
 	in_addr_t network;
 	in_addr_t netmask;
