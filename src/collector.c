@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 
 #include "collector.h"
+#include "util.h"
 
 uint64_t timestamp_now() {
 	struct timespec ts;
