@@ -11,7 +11,7 @@ collector_util_test_LDFLAGS = -lmarquise -lrt $(GLIB_2_LIBS)
 
 collector_parser_test_SOURCES = util.c tests/collector_parser_test.c
 collector_parser_test_CFLAGS  = -Wall -g $(GLIB_2_CFLAGS)
-collector_parser_test_LDFLAGS = -lmarquise -lrt
+collector_parser_test_LDFLAGS = -lmarquise -lrt $(GLIB_2_LIBS)
 
 vaultaire_collector_pmacct_SOURCES = util.c collector.c
 vaultaire_collector_pmacct_CFLAGS  = -Wall -g $(GLIB_2_CFLAGS)
